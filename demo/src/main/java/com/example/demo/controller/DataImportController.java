@@ -1,16 +1,19 @@
 package com.example.demo.controller;
 
-import com.example.demo.entity.Song; // Song 엔티티 import
-import com.example.demo.service.SpotifyService; // SpotifyService import
+import com.example.demo.dto.BatchImportRequest; // 🚨 일괄 가져오기 요청 DTO
+import com.example.demo.entity.Song; // Song 엔티티
+import com.example.demo.service.SpotifyService; // Spotify 서비스
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PostMapping; // POST 매핑
+import org.springframework.web.bind.annotation.RequestBody; // @RequestBody
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestParam; // @RequestParam
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collections; // 빈 리스트 반환 시 사용
-import java.util.List;
+import java.util.ArrayList; // ArrayList 사용
+import java.util.Collections; // Collections.emptyList() 사용
+import java.util.List; // List 사용
 
 /**
  * 외부 데이터 소스(예: Spotify)로부터 데이터를 가져와 DB에 저장하는 API 컨트롤러입니다.
@@ -24,33 +27,69 @@ public class DataImportController {
     private final SpotifyService spotifyService;
 
     /**
-     * Spotify API를 호출하여 곡을 검색하고, 검색 결과를 로컬 데이터베이스에 저장합니다.
-     * 이 API는 POST 요청으로 /api/import/spotify 경로를 통해 접근할 수 있습니다.
-     *
-     * @param query 검색할 키워드 (URL 파라미터로 필수: ?query=아이유)
-     * @param limit 가져올 최대 곡 수 (URL 파라미터로 선택: &limit=5, 기본값은 10)
-     * @return DB에 새로 저장된 곡 목록 (JSON 형태) 또는 오류 시 빈 목록과 함께 적절한 상태 코드.
+     * [단일 검색] Spotify API를 호출하여 곡을 검색하고 결과를 로컬 DB에 저장합니다.
+     * @param query 검색할 키워드 (필수)
+     * @param limit 가져올 최대 곡 수 (선택, 기본값 10)
+     * @return DB에 새로 저장된 곡 목록 (JSON)
      */
-    @PostMapping("/spotify") // POST 요청을 /spotify 경로에 매핑합니다.
+    @PostMapping("/spotify") // POST /api/import/spotify?query=...&limit=...
     public ResponseEntity<List<Song>> importFromSpotify(
-            @RequestParam String query, // 'query' URL 파라미터를 필수로 받습니다.
-            @RequestParam(defaultValue = "10") int limit) { // 'limit' URL 파라미터를 받으며, 없으면 기본값 10을 사용합니다.
+            @RequestParam String query, // URL 쿼리 파라미터 'query'
+            @RequestParam(defaultValue = "10") int limit) { // URL 쿼리 파라미터 'limit', 없으면 10
 
         try {
-            // SpotifyService의 메서드를 호출하여 실제 검색 및 저장 작업을 수행합니다.
             List<Song> importedSongs = spotifyService.searchAndSaveTracks(query, limit);
-
-            // 작업 성공 시, 저장된 곡 목록과 함께 200 OK 응답을 반환합니다.
+            // 성공 시 200 OK 와 함께 저장된 곡 목록 반환
             return ResponseEntity.ok(importedSongs);
         } catch (Exception e) {
-            // SpotifyService에서 오류 발생 시 (예: API 인증 실패, 네트워크 오류 등)
-            System.err.println("Spotify 데이터 가져오기 실패: " + e.getMessage());
-            e.printStackTrace(); // 서버 로그에 전체 오류 스택 출력 (디버깅용)
-
-            // 클라이언트에게는 500 Internal Server Error와 빈 목록을 반환합니다.
-            // 좀 더 구체적인 오류 응답을 DTO로 만들어 반환할 수도 있습니다.
+            System.err.println("Spotify (단일) 데이터 가져오기 실패: " + e.getMessage());
+            e.printStackTrace();
+            // 오류 발생 시 500 Internal Server Error와 빈 목록 반환
             return ResponseEntity.internalServerError().body(Collections.emptyList());
         }
+    }
+
+    /**
+     * 🚨 [일괄 검색] Spotify에서 여러 검색어로 일괄 검색하여 DB에 저장하는 API
+     * @param request 검색어 목록(queries)과 키워드당 제한(limitPerQuery)이 담긴 DTO
+     * @return DB에 새로 저장된 모든 곡의 목록
+     */
+    @PostMapping("/spotify-batch") // POST /api/import/spotify-batch
+    public ResponseEntity<List<Song>> importBatchFromSpotify(
+            @RequestBody BatchImportRequest request) { // 🚨 JSON Body로 받음
+        
+        List<Song> totalImportedSongs = new ArrayList<>(); // 모든 결과를 담을 리스트
+        
+        // 유효성 검사: 쿼리 목록이 없거나 비어있으면 400 Bad Request 반환
+        if (request.getQueries() == null || request.getQueries().isEmpty()) {
+             return ResponseEntity.badRequest().body(totalImportedSongs);
+        }
+
+        // 유효성 검사: limit 값이 0 이하면 기본값 10 사용
+        int limit = request.getLimitPerQuery() > 0 ? request.getLimitPerQuery() : 10; 
+
+        System.out.println("일괄 가져오기 시작... 총 " + request.getQueries().size() + "개의 키워드.");
+
+        // 2. 요청받은 키워드 목록을 하나씩 순회
+        for (String query : request.getQueries()) {
+            if (query == null || query.trim().isEmpty()) continue; // 빈 키워드는 건너뛰기
+
+            System.out.println("'" + query + "' 검색 및 저장 중...");
+            try {
+                // 3. 기존 SpotifyService의 검색 및 저장 메서드 호출
+                List<Song> importedSongs = spotifyService.searchAndSaveTracks(query, limit);
+                // 결과 리스트에 추가
+                totalImportedSongs.addAll(importedSongs);
+            } catch (Exception e) {
+                // 특정 키워드 검색 실패 시 서버 로그에만 남기고 계속 진행
+                // (하나의 키워드가 실패해도 전체 작업이 중단되지 않도록)
+                System.err.println("'" + query + "' 검색 중 오류 발생: " + e.getMessage());
+            }
+        }
+
+        System.out.println("일괄 가져오기 완료. 총 " + totalImportedSongs.size() + "곡 저장됨.");
+        // 4. 모든 결과를 모아서 200 OK 응답 반환
+        return ResponseEntity.ok(totalImportedSongs);
     }
 }
 

@@ -147,4 +147,26 @@ public class PlaylistController {
             return ResponseEntity.internalServerError().build();
         }
     }
+    /**
+     * 🚨 [새로 추가] 특정 재생목록에서 특정 곡 삭제 API
+     * (DELETE /api/playlists/{playlistId}/songs/{songId})
+     * @param playlistId 경로 변수로 전달된 재생목록 ID
+     * @param songId 경로 변수로 전달된 삭제할 곡 ID
+     * @return 성공 시 204 No Content
+     */
+    @DeleteMapping("/{playlistId}/songs/{songId}")
+    public ResponseEntity<Void> removeSongFromPlaylist(
+            @PathVariable Long playlistId,
+            @PathVariable Long songId) {
+        
+        try {
+            playlistService.removeSongFromPlaylist(playlistId, songId);
+            // 삭제 성공 시 (존재하지 않는 ID였어도 쿼리는 성공) 204 No Content 반환
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            // DB 제약 조건 오류 등 예기치 않은 오류 발생 시
+            System.err.println("재생목록 곡 삭제 중 오류: " + e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }

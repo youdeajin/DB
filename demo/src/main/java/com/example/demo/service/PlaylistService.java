@@ -219,5 +219,22 @@ public class PlaylistService {
 
         System.out.println("Song " + songId + " added to playlist " + playlistId + " at order " + nextOrder);
     }
+    /**
+     * 🚨 [새로 추가] 특정 재생목록에서 특정 곡 하나를 삭제합니다.
+     * @param playlistId 재생목록 ID
+     * @param songId 삭제할 곡 ID
+     */
+    @Transactional // 🚨 deleteBy... 메서드는 트랜잭션 내에서 호출되어야 함
+    public void removeSongFromPlaylist(Long playlistId, Long songId) {
+        // 1. 해당 재생목록이나 곡이 존재하는지 확인할 수 있으나,
+        //    단순히 삭제 쿼리만 실행해도 존재하지 않으면 아무 일도 일어나지 않습니다.
+        
+        // 2. Repository의 삭제 메서드 호출
+        playlistSongRepository.deleteByPlaylistIdAndSongId(playlistId, songId);
+        
+        // 🚨 참고: 곡 삭제 후 song_order 순서를 재정렬하는 로직을 추가할 수 있으나,
+        // 현재 조회 로직(OrderBySongOrderAsc)은 순서가 비어도 잘 작동하므로 일단 생략합니다.
+    }
 }
+
 

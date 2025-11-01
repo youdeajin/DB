@@ -20,4 +20,6 @@ public interface SongRepository extends JpaRepository<Song, Long> {
 
     // 🚨 [필수 추가] 제목과 아티스트 ID로 곡 존재 여부 확인 (SpotifyService에서 사용)
     boolean existsByTitleAndArtistId(String title, Long artistId);
+    // 🚨 [새로 추가] 정확한 제목으로 곡을 찾는 메서드 (AI 응답 파싱 후 사용)
+    List<Song> findByTitle(String title);
 }
