@@ -24,7 +24,7 @@ public class RecommendationController {
     private final WeatherService weatherService;
     private final SongRepository songRepository;
 
-    @CrossOrigin(origins = "https://localhost:3000")
+    @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/weather")
     public ResponseEntity<?> getWeatherRecommendation() {
         // 1. 현재 날씨 가져오기

@@ -23,7 +23,7 @@ public class SongController {
     }
     
     // 🚨 [새로 추가] 랜덤 추천곡 API (GET /api/songs/random)
-    @CrossOrigin(origins = "https://localhost:3000")
+    @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/random")
     public ResponseEntity<List<Song>> getRandomSongs(@RequestParam(defaultValue = "10") int limit) {
         List<Song> songs = songService.findRandomSongs(limit);
@@ -31,7 +31,7 @@ public class SongController {
     }
 
     // 🚨 [새로 추가] 인기곡 API (GET /api/songs/popular)
-    @CrossOrigin(origins = "https://localhost:3000")
+    @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/popular")
     public ResponseEntity<List<Song>> getPopularSongs(@RequestParam(defaultValue = "10") int limit) {
         List<Song> songs = songService.findPopularSongs(limit);
@@ -58,6 +58,7 @@ public class SongController {
     }
 
     // 🚨 [새로 추가] 최신 곡 API
+    @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/recent")
     public ResponseEntity<List<Song>> getRecentSongs() {
         // Service를 거치지 않고 Repository를 바로 호출해도 되지만, 

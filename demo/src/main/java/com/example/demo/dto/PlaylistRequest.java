@@ -4,11 +4,10 @@ import lombok.Getter;
 import lombok.Setter;
 import java.util.List;
 
-@Getter
-@Setter
+@Getter @Setter
 public class PlaylistRequest {
-    
     private String title;
-    private Boolean isPublic; // 프론트엔드에서 받은 boolean
-    private List<Long> songIds; // 재생목록에 추가할 곡 ID 목록
+    private Boolean isPublic;
+    private List<Long> songIds;
+    private Long userId; // 🚨 [추가] 생성 요청한 사용자 ID
 }

@@ -6,11 +6,13 @@ import com.example.demo.service.ChatbotService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import java.util.List; // 🚨 List 임포트
 import java.util.Collections; // 🚨 Collections 임포트
 
 @RestController
 @RequestMapping("/api/chatbot")
+@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class ChatbotController {
 
