@@ -19,7 +19,7 @@ import java.util.Map;
 public class AlbumController {
 
     private final AlbumService albumService;
-    private final UserSavedAlbumRepository userSavedAlbumRepository; // 🚨 [추가] 앨범 저장 레포지토리 주입
+    private final UserSavedAlbumRepository userSavedAlbumRepository;
 
     /**
      * 모든 앨범 조회 API (GET /api/albums)
@@ -30,6 +30,17 @@ public class AlbumController {
     }
 
     /**
+     * 🚨 [추가됨] 특정 앨범 상세 정보 조회 API (GET /api/albums/{albumId})
+     * 이 부분이 없어서 404 오류가 발생했습니다.
+     */
+    @GetMapping("/{albumId}")
+    public ResponseEntity<Album> getAlbumById(@PathVariable Long albumId) {
+        return albumService.findAlbumById(albumId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
      * 특정 앨범의 수록곡 조회 API (GET /api/albums/{albumId}/songs)
      */
     @GetMapping("/{albumId}/songs")
@@ -37,11 +48,8 @@ public class AlbumController {
         return ResponseEntity.ok(albumService.findSongsByAlbumId(albumId));
     }
 
-    // --- 🚨 아래부터 새로 추가된 기능 ---
-
     /**
      * 앨범 저장 (좋아요/찜하기) API (POST /api/albums/{albumId}/save)
-     * Body: { "userId": 1 }
      */
     @PostMapping("/{albumId}/save")
     public ResponseEntity<?> saveAlbum(@PathVariable Long albumId, @RequestBody Map<String, Long> body) {
@@ -50,7 +58,6 @@ public class AlbumController {
             return ResponseEntity.badRequest().body("User ID is required");
         }
 
-        // 이미 저장되어 있는지 확인 후 저장
         if (userSavedAlbumRepository.findByUserIdAndAlbumId(userId, albumId).isEmpty()) {
             userSavedAlbumRepository.save(new UserSavedAlbum(userId, albumId));
             return ResponseEntity.ok("Album saved successfully");
@@ -74,8 +81,7 @@ public class AlbumController {
     }
 
     /**
-     * 사용자가 저장한 앨범 ID 목록 조회 API (GET /api/albums/saved/ids?userId={userId})
-     * - 프론트엔드에서 하트(♥) 표시를 활성화할 때 사용
+     * 사용자가 저장한 앨범 ID 목록 조회 API
      */
     @GetMapping("/saved/ids")
     public ResponseEntity<List<Long>> getSavedAlbumIds(@RequestParam Long userId) {

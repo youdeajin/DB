@@ -70,22 +70,5 @@ CREATE TABLE playlist_songs (
     FOREIGN KEY (playlist_id) REFERENCES playlists(playlist_id),
     FOREIGN KEY (song_id) REFERENCES songs(song_id)
 );
-
--- artists_seq, albums_seq, songs_seq 시퀀스가 존재한다고 가정
-
--- 아티스트 추가
-INSERT INTO artists (artist_id, name) VALUES (artists_seq.NEXTVAL, '아이유');
-INSERT INTO artists (artist_id, name) VALUES (artists_seq.NEXTVAL, 'BTS');
-
--- 앨범 추가
-INSERT INTO albums (album_id, title, artist_id, release_date) 
-VALUES (albums_seq.NEXTVAL, 'LILAC', (SELECT artist_id FROM artists WHERE name = '아이유'), DATE '2021-03-25');
-
--- 곡 추가 (filePath는 프론트에서 접근 가능한 가상의 URL 또는 경로)
-INSERT INTO songs (song_id, title, artist_id, album_id, file_path, duration_seconds, genre) 
-VALUES (songs_seq.NEXTVAL, '라일락', 
-    (SELECT artist_id FROM artists WHERE name = '아이유'), 
-    (SELECT album_id FROM albums WHERE title = 'LILAC'), 
-    'https://archive.org/download/pkmn-dppt-soundtrack/Disc%201/55%20-%20Route%20209%20%28Day%29.mp3', 210, 'K-Pop');
-
+-- ===================================
 COMMIT;
