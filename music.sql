@@ -7,6 +7,7 @@ CREATE SEQUENCE albums_seq START WITH 1 INCREMENT BY 1 NOMAXVALUE;
 CREATE SEQUENCE songs_seq START WITH 1 INCREMENT BY 1 NOMAXVALUE;
 CREATE SEQUENCE playlists_seq START WITH 1 INCREMENT BY 1 NOMAXVALUE;
 CREATE SEQUENCE playlist_songs_seq START WITH 1 INCREMENT BY 1 NOMAXVALUE;
+CREATE SEQUENCE play_history_seq START WITH 1 INCREMENT BY 1 NOMAXVALUE;
 -- (고급 기능을 위해 sleep_timers_seq 등도 필요하지만 1단계는 이 정도만)
 
 
@@ -68,6 +69,16 @@ CREATE TABLE playlist_songs (
     song_id NUMBER,
     song_order NUMBER,
     FOREIGN KEY (playlist_id) REFERENCES playlists(playlist_id),
+    FOREIGN KEY (song_id) REFERENCES songs(song_id)
+);
+
+-- 7) 재생 기록 테이블 (users, songs 참조)
+CREATE TABLE play_history (
+    play_history_id NUMBER PRIMARY KEY,
+    user_id NUMBER,
+    song_id NUMBER,
+    played_at TIMESTAMP DEFAULT SYSTIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (song_id) REFERENCES songs(song_id)
 );
 -- ===================================
