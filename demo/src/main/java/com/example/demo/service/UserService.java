@@ -7,6 +7,7 @@ import com.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,5 +49,20 @@ public class UserService {
         }
         
         return user; 
+    }
+
+    // 🚨 [관리자 페이지] 모든 사용자 조회
+    @Transactional(readOnly = true)
+    public List<User> findAllUsers() {
+        return userRepository.findAll();
+    }
+
+    // 🚨 [관리자 페이지] 사용자 삭제
+    @Transactional
+    public void deleteUser(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new IllegalArgumentException("User not found with ID: " + userId);
+        }
+        userRepository.deleteById(userId);
     }
 }

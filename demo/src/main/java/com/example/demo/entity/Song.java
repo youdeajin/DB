@@ -4,12 +4,12 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-// import lombok.Setter; // 필요 시 추가
+import lombok.Setter; // 관리자 페이지에서 곡 수정을 위해 추가
 
 @Entity
 @Table(name = "SONGS") // DB 테이블 이름 명시
 @Getter
-// @Setter // 필요 시 추가
+@Setter // 관리자 페이지에서 곡 수정을 위해 추가
 @NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA 기본 생성자
 public class Song {
 

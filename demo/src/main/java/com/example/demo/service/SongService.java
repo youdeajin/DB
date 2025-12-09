@@ -60,4 +60,41 @@ public class SongService {
     public List<Song> findRecentSongs() {
         return songRepository.findTop16ByOrderBySongIdDesc();
     }
+
+    // 🚨 [관리자 페이지] 곡 정보 수정
+    @Transactional
+    public Song updateSong(Long songId, Song song) {
+        Song existingSong = songRepository.findById(songId)
+                .orElseThrow(() -> new IllegalArgumentException("Song not found with ID: " + songId));
+        
+        if (song.getTitle() != null) {
+            existingSong.setTitle(song.getTitle());
+        }
+        if (song.getArtistId() != null) {
+            existingSong.setArtistId(song.getArtistId());
+        }
+        if (song.getAlbumId() != null) {
+            existingSong.setAlbumId(song.getAlbumId());
+        }
+        if (song.getFilePath() != null) {
+            existingSong.setFilePath(song.getFilePath());
+        }
+        if (song.getDurationSeconds() != null) {
+            existingSong.setDurationSeconds(song.getDurationSeconds());
+        }
+        if (song.getGenre() != null) {
+            existingSong.setGenre(song.getGenre());
+        }
+        
+        return songRepository.save(existingSong);
+    }
+
+    // 🚨 [관리자 페이지] 곡 삭제
+    @Transactional
+    public void deleteSong(Long songId) {
+        if (!songRepository.existsById(songId)) {
+            throw new IllegalArgumentException("Song not found with ID: " + songId);
+        }
+        songRepository.deleteById(songId);
+    }
 }
